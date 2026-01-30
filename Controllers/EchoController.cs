@@ -1,57 +1,67 @@
-﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace ado_cp_4.Controllers
+namespace EchoApp.Controllers
 {
     public class EchoController : Controller
     {
+
         [HttpGet]
-        public async Task<IActionResult> Get()
+        public async Task Get()
         {
             Response.ContentType = "text/plain";
             await Response.WriteAsync("GET request received");
-            return new EmptyResult();
         }
 
+        // Оригинальное POST-действие (тестировать через curl / Postman)
         [HttpPost]
-        public async Task<IActionResult> Post()
+        public async Task Post()
         {
             Response.ContentType = "text/plain";
             await Response.WriteAsync("POST request received");
-            return new EmptyResult();
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Headers()
-        {
-            Response.ContentType = "application/json";
-            await Response.WriteAsJsonAsync(Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString()));
-            return new EmptyResult();
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> Query()
-        {
-            Response.ContentType = "application/json";
-            await Response.WriteAsJsonAsync(Request.Query.ToDictionary(q => q.Key, q => q.Value.ToString()));
-            return new EmptyResult();
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Body()
+        // Вспомогательное GET-действие для просмотра в браузере
+        [HttpGet("Echo/PostDemo")]
+        public async Task PostDemo()
         {
             Response.ContentType = "text/plain";
+            await Response.WriteAsync("[Demo] This would be a POST response. Use POST to /Echo/Post for real test.");
+        }
 
-            using (StreamReader reader = new StreamReader(Request.Body, Encoding.UTF8))
-            {
-                var bodyText = await reader.ReadToEndAsync();
-                await Response.WriteAsync(bodyText);
-            }
-            return new EmptyResult();
+        [HttpGet]
+        public async Task Headers()
+        {
+            Response.ContentType = "application/json";
+            var headers = Request.Headers.ToDictionary(h => h.Key, h => h.Value.ToString());
+            await Response.WriteAsJsonAsync(headers);
+        }
+
+        [HttpGet]
+        public async Task Query()
+        {
+            Response.ContentType = "application/json";
+            var query = Request.Query.ToDictionary(q => q.Key, q => q.Value.ToString());
+            await Response.WriteAsJsonAsync(query);
+        }
+
+        // Оригинальное POST-действие для тела
+        [HttpPost]
+        public async Task Body()
+        {
+            Response.ContentType = "text/plain";
+            using var reader = new StreamReader(Request.Body);
+            var body = await reader.ReadToEndAsync();
+            if (string.IsNullOrEmpty(body))
+                body = "[Empty body]";
+            await Response.WriteAsync(body);
+        }
+
+        // Вспомогательное GET-действие для просмотра в браузере
+        [HttpGet("Echo/BodyDemo")]
+        public async Task BodyDemo()
+        {
+            Response.ContentType = "text/plain";
+            await Response.WriteAsync("[Demo] Send a POST request with body to /Echo/Body to see it echoed back.");
         }
     }
 }
